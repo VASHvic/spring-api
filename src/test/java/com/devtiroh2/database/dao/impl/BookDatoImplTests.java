@@ -5,11 +5,13 @@ import static org.mockito.Mockito.verify;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.jdbc.core.JdbcTemplate;
 
+import com.devtiroh2.database.TestDataUtil;
 import com.devtiroh2.database.dao.imp.BookDaoImpl;
 import com.devtiroh2.database.domain.Book;
 
@@ -23,10 +25,19 @@ public class BookDatoImplTests {
 
     @Test
     public void testThatCreateBookGenetaresCorrectSql() {
-        Book book = Book.builder().isbn("123").title("caca").authorId(1L).build();
+        Book book = TestDataUtil.createTestBook();
         underTest.create(book);
         verify(jdbcTemplate).update(
                 eq("INSERT INTO books (isbn,title,author_id) VALUES (?, ?, ?)"),
                 eq("123"), eq("caca"), eq(1L));
+    }
+
+    @Test
+    public void testThatFindOneBookGeneratesTheCorrectSql() {
+        underTest.find("123");
+        verify(jdbcTemplate).query(
+                eq("SELECT isbn, title, author_id FROM books WHERE isbn = ?"),
+                ArgumentMatchers.<BookDaoImpl.BookRowMapper>any(),
+                eq("123"));
     }
 }
