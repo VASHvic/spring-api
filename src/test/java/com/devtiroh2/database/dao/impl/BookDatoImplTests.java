@@ -24,20 +24,40 @@ public class BookDatoImplTests {
     private BookDaoImpl underTest;
 
     @Test
-    public void testThatCreateBookGenetaresCorrectSql() {
-        Book book = TestDataUtil.createTestBook();
+    public void testThatCreateBookGeneratesCorrectSql() {
+        Book book = TestDataUtil.createTestBookA();
+
         underTest.create(book);
+
         verify(jdbcTemplate).update(
-                eq("INSERT INTO books (isbn,title,author_id) VALUES (?, ?, ?)"),
-                eq("123"), eq("caca"), eq(1L));
+                eq("INSERT INTO books (isbn, title, author_id) VALUES (?, ?, ?)"),
+                eq("978-1-2345-6789-0"),
+                eq("The Shadow in the Attic"),
+                eq(1L));
     }
 
     @Test
-    public void testThatFindOneBookGeneratesTheCorrectSql() {
-        underTest.find("123");
+    public void testThatFindOneBookGeneratesCorrectSql() {
+        underTest.findOne("978-1-2345-6789-0");
         verify(jdbcTemplate).query(
-                eq("SELECT isbn, title, author_id FROM books WHERE isbn = ?"),
+                eq("SELECT isbn, title, author_id from books WHERE isbn = ? LIMIT 1"),
                 ArgumentMatchers.<BookDaoImpl.BookRowMapper>any(),
-                eq("123"));
+                eq("978-1-2345-6789-0"));
+    }
+
+    @Test
+    public void testThatFindGeneratesCorrectSql() {
+        underTest.find();
+        verify(jdbcTemplate).query(
+                eq("SELECT isbn, title, author_id from books"),
+                ArgumentMatchers.<BookDaoImpl.BookRowMapper>any());
+    }
+
+    @Test
+    public void testThatDeleteGeneratesCorrectSql() {
+        underTest.delete("978-1-2345-6789-0");
+        verify(jdbcTemplate).update(
+                "DELETE FROM books where isbn = ?",
+                "978-1-2345-6789-0");
     }
 }

@@ -21,34 +21,24 @@ import com.devtiroh2.database.domain.Author;
 public class AuthorDaoImpl implements AuthorDao {
 
     private final JdbcTemplate jdbcTemplate;
-    private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
-    private JdbcClient jdbcClient;
 
-    // Done in 3 ways, jdbclient is the most modern one
-    public AuthorDaoImpl(
-            JdbcTemplate jdbcTemplate,
-            NamedParameterJdbcTemplate namedParameterJdbcTemplate,
-            JdbcClient jdbcClient) {
+    public AuthorDaoImpl(final JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
-        this.namedParameterJdbcTemplate = namedParameterJdbcTemplate;
-        this.jdbcClient = jdbcClient;
     }
 
     @Override
     public void create(Author author) {
-        KeyHolder keyHolder = new GeneratedKeyHolder();
-        String sql = "INSERT INTO authors (id, name, age) VALUES (:id, :name, :age)";
-        jdbcClient.sql(sql)
-                .param("id", author.getId())
-                .param("name", author.getName())
-                .param("age", author.getAge())
-                .update();
+        jdbcTemplate.update(
+                "INSERT INTO authors (id, name, age) VALUES (?, ?, ?)",
+                author.getId(), author.getName(), author.getAge());
     }
 
     @Override
-    public Optional<Author> find(Long authorId) {
-        List<Author> results = jdbcTemplate.query("SELECT id, name, age FROM authors WHERE id = ? LIMIT 1",
+    public Optional<Author> findOne(long authorId) {
+        List<Author> results = jdbcTemplate.query(
+                "SELECT id, name, age FROM authors WHERE id = ? LIMIT 1",
                 new AuthorRowMapper(), authorId);
+
         return results.stream().findFirst();
     }
 
@@ -65,13 +55,23 @@ public class AuthorDaoImpl implements AuthorDao {
     }
 
     @Override
-    public List<Author> findMany(List<Long> ids) {
-        MapSqlParameterSource parameters = new MapSqlParameterSource();
-        parameters.addValue("ids", ids);
-        return namedParameterJdbcTemplate.query(
-                "SELECT id, name, age FROM authors WHERE id IN (:ids)",
-                parameters,
+    public List<Author> find() {
+        return jdbcTemplate.query(
+                "SELECT id, name, age FROM authors",
                 new AuthorRowMapper());
+    }
 
+    @Override
+    public void update(long id, Author author) {
+        jdbcTemplate.update(
+                "UPDATE authors SET id = ?, name = ?, age = ? WHERE id = ?",
+                author.getId(), author.getName(), author.getAge(), id);
+    }
+
+    @Override
+    public void delete(long id) {
+        jdbcTemplate.update(
+                "DELETE FROM authors where id = ?",
+                id);
     }
 }
