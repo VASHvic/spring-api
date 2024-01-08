@@ -1,16 +1,16 @@
 package com.devtiroh2.database.repositories;
 
-import com.devtiroh2.database.domain.Author;
+import com.devtiroh2.database.domain.entities.AuthorEntity;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface AuthorRepository extends CrudRepository<Author, Long> {
+public interface AuthorRepository extends CrudRepository<AuthorEntity, Long> {
 
-    // Spring infers this method implementation based on the name and params of the method.
-    Iterable<Author> ageLessThan(int i);
+    Iterable<AuthorEntity> ageLessThan(int age);
 
-    @Query("SELECT a from Author a where a.age > ?1")
-    Iterable<Author> findAuthorsWithAgeGreaterThan(int age);
+    @Query("SELECT a from AuthorEntity a where a.age > ?1")
+    Iterable<AuthorEntity> findAuthorsWithAgeGreaterThan(int age);
 }
+
